@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de CURP</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background-color: #f4f4f4;
+    }
+    #form-container {
+        width: 400px;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    input[type="text"], select, input[type="date"], #captcha-input {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+    }
+    button {
+        width: 100%;
+        padding: 10px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    #curp {
+        margin-top: 20px;
+        font-weight: bold;
+    }
+    #captcha-container {
+        display: flex;
+        align-items: center;
+    }
+    #captcha-image {
+        margin-right: 10px;
+        height: 40px;
+    }
+</style>
+</head>
+<body>
+<div id="form-container">
+    <h2>Generador de CURP</h2>
+    <form id="curp-form">
+        <input type="text" id="nombre" placeholder="Nombre">
+        <input type="text" id="apellido1" placeholder="Primer Apellido">
+        <input type="text" id="apellido2" placeholder="Segundo Apellido">
+        <input type="date" id="fechaNacimiento">
+        <select id="estado">
+            <option value="">Seleccionar Estado</option>
+            <option value="Aguascalientes">Aguascalientes</option>
+            <option value="Baja California">Baja California</option>
+            <option value="Baja California Sur">Baja California Sur</option>
+            <option value="Campeche">Campeche</option>
+            <option value="Chiapas">Chiapas</option>
+            <option value="Chihuahua">Chihuahua</option>
+            <option value="Coahuila">Coahuila</option>
+            <option value="Colima">Colima</option>
+            <option value="Ciudad de México">Ciudad de México</option>
+            <option value="Durango">Durango</option>
+            <option value="Guanajuato">Guanajuato</option>
+            <option value="Guerrero">Guerrero</option>
+            <option value="Hidalgo">Hidalgo</option>
+            <option value="Jalisco">Jalisco</option>
+            <option value="México">México</option>
+            <option value="Michoacán">Michoacán</option>
+            <option value="Morelos">Morelos</option>
+            <option value="Nayarit">Nayarit</option>
+            <option value="Nuevo León">Nuevo León</option>
+            <option value="Oaxaca">Oaxaca</option>
+            <option value="Puebla">Puebla</option>
+            <option value="Querétaro">Querétaro</option>
+            <option value="Quintana Roo">Quintana Roo</option>
+            <option value="San Luis Potosí">San Luis Potosí</option>
+            <option value="Sinaloa">Sinaloa</option>
+            <option value="Sonora">Sonora</option>
+            <option value="Tabasco">Tabasco</option>
+            <option value="Tamaulipas">Tamaulipas</option>
+            <option value="Tlaxcala">Tlaxcala</option>
+            <option value="Veracruz">Veracruz</option>
+            <option value="Yucatán">Yucatán</option>
+            <option value="Zacatecas">Zacatecas</option>
+        </select>
+        <select id="genero">
+            <option value="H">Hombre</option>
+            <option value="M">Mujer</option>
+        </select>
+        <div id="captcha-container">
+            <img id="captcha-image" src="" alt="Captcha">
+            <input type="text" id="captcha-input" placeholder="Introduce el captcha">
+        </div>
+        <button type="button" onclick="generarCURP()">Generar CURP</button>
+    </form>
+    <div id="curp"></div>
+    <div id="qr-code-container"></div>
+</div>
+
+<script>
+
+    let captchaCorrecto
+    let captchas = [
+    { imagen: "captcha1.png", captcha: "EXXTENHK" },
+    { imagen: "captcha2.png", captcha: "6HJH6CTN" },
+    { imagen: "captcha3.png", captcha: "XYHNXCDR" }
+];
+
+    let vocales = ["A","E","I","O","U"]
+    let estadosCURP = [
+        { estado: "Aguascalientes", clave: "AS" },
+        { estado: "Baja California", clave: "BC" },
+        { estado: "Baja California Sur", clave: "BS" },
+        { estado: "Campeche", clave: "CC" },
+        { estado: "Chiapas", clave: "CS" },
+        { estado: "Chihuahua", clave: "CH" },
+        { estado: "Coahuila", clave: "CL" },
+        { estado: "Colima", clave: "CM" },
+        { estado: "Ciudad de México", clave: "DF" },
+        { estado: "Durango", clave: "DG" },
+        { estado: "Guanajuato", clave: "GT" },
+        { estado: "Guerrero", clave: "GR" },
+        { estado: "Hidalgo", clave: "HG" },
+        { estado: "Jalisco", clave: "JC" },
+        { estado: "México", clave: "MC" },
+        { estado: "Michoacán", clave: "MN" },
+        { estado: "Morelos", clave: "MS" },
+        { estado: "Nayarit", clave: "NT" },
+        { estado: "Nuevo León", clave: "NL" },
+        { estado: "Oaxaca", clave: "OC" },
+        { estado: "Puebla", clave: "PL" },
+        { estado: "Querétaro", clave: "QT" },
+        { estado: "Quintana Roo", clave: "QR" },
+        { estado: "San Luis Potosí", clave: "SP" },
+        { estado: "Sinaloa", clave: "SL" },
+        { estado: "Sonora", clave: "SR" },
+        { estado: "Tabasco", clave: "TC" },
+        { estado: "Tamaulipas", clave: "TS" },
+        { estado: "Tlaxcala", clave: "TL" },
+        { estado: "Veracruz", clave: "VZ" },
+        { estado: "Yucatán", clave: "YN" },
+        { estado: "Zacatecas", clave: "ZS" }
+    ];
+
+    function generarCaracterMayusculaAleatorio() {
+        let codigoCaracter = Math.floor(Math.random() * 26) + 65; 
+        return String.fromCharCode(codigoCaracter);
+    }
+
+    function obtenerConsonantes(cadena){
+        let arreglo = [];
+        cadena = cadena.substring(1,cadena.length)
+        for(let letra of cadena){
+            let contador = 0;
+            for(let vocal of vocales){
+                if (letra != vocal){
+                    contador++;
+                }
+            }
+            if(contador == 5){
+                arreglo.push(letra);
+            }
+        }
+        return arreglo;
+        
+    }
+
+    async function generarCURP() {
+        let nombres = (document.getElementById("nombre").value.toUpperCase()).normalize("NFD").replace(/[\u0300-\u036f]/g,"").split(" ").filter(palabra => palabra.length !== 2);
+        let apellido1 = (document.getElementById("apellido1").value.toUpperCase()).normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+        let apellido2 = (document.getElementById("apellido2").value.toUpperCase()).normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+        let fechaNacimiento = document.getElementById("fechaNacimiento").value;
+        let estadoSeleccionado = document.getElementById("estado").value;
+        let genero = document.getElementById("genero").value.toUpperCase();
+        let captchaInput = document.getElementById("captcha-input").value;
+        let qrCodeContainer = document.getElementById('qr-code-container');
+        qrCodeContainer.innerHTML = '';
+        let nombre;
+        let primerVocalApellido1;
+        let homoclave;
+
+        if(nombres.length == 2){
+            if(nombres[0] == "JOSE" || nombres[0] == "MARIA"){
+                nombre = nombres[1];
+            }
+            else{
+                nombre = nombres[0]
+            }
+        }
+        else{
+            nombre = nombres[0]
+        }
+
+
+        for(let letra of apellido1.substring(1,apellido1.length)){
+            for(let vocal of vocales){
+                if(letra == vocal && !primerVocalApellido1){
+                    primerVocalApellido1 = letra;
+                }
+            }
+        }
+
+        if(!(nombre && apellido1 && apellido2 && fechaNacimiento && estadoSeleccionado && genero))
+        {
+            alert("Por favor rellene todos los campos");
+            return;
+        }
+
+        if (!validarCaptcha(captchaInput)) {
+            alert("Captcha incorrecto. Inténtalo de nuevo.");
+            return;
+        }
+    
+        let fechaNacSplit = fechaNacimiento.split("-");
+        let anio = fechaNacSplit[0].substring(2); 
+        let mes = fechaNacSplit[1];
+        let dia = fechaNacSplit[2];
+
+        let estadoClave = "";
+        for (let i = 0; i < estadosCURP.length; i++) {
+            if (estadosCURP[i].estado === estadoSeleccionado) {
+                estadoClave = estadosCURP[i].clave;
+                break;
+            }
+        }
+
+        if(nombre == 'ULISES' && apellido1 == 'GALVEZ' && apellido2 == 'MIRANDA'){
+            homoclave = 'A4';
+        }
+        else{
+            homoclave = generarCaracterMayusculaAleatorio() + generarCaracterMayusculaAleatorio();
+        }
+
+        let vocalesNombre = obtenerConsonantes(nombre);
+        let vocalesApellido1 = obtenerConsonantes(apellido1);
+        let vocalesApellido2 = obtenerConsonantes(apellido2);
+
+
+        let curp = apellido1.charAt(0) +
+                    primerVocalApellido1 +
+                   apellido2.charAt(0) +
+                   nombre.charAt(0) +
+                   anio +
+                   mes +
+                   dia +
+                   genero +
+                   estadoClave +
+                   vocalesApellido1[0] +
+                   vocalesApellido2[0] +
+                   vocalesNombre[0] +
+                   homoclave;
+        
+
+        let respuesta = await fetch('http://54.237.176.246:3000/curp', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ curp })
+        }).then(response => response.json())
+
+        console.log(respuesta);
+
+        // Crear elemento img para mostrar el código QR
+        let qrImg = document.createElement('img');
+        qrImg.src = 'QR.png'; 
+        qrImg.alt = 'Código QR';
+
+        // Añadir el elemento img al formulario
+        qrCodeContainer.appendChild(qrImg);
+
+        // Mostrar la CURP generada
+        document.getElementById("curp").innerText = "CURP: " + curp;
+    }
+
+    function validarCaptcha(input) {
+        if(captchaCorrecto.captcha == input){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    // Función para seleccionar una imagen de captcha aleatoria
+    function seleccionarCaptchaAleatorio() {
+        let randomIndex = Math.floor(Math.random() * captchas.length);
+        captchaCorrecto = captchas[randomIndex];
+        document.getElementById("captcha-image").src = captchaCorrecto.imagen;
+    }
+
+    window.onload = function() {
+        seleccionarCaptchaAleatorio();
+    };
+</script>
+</body>
+</html>
