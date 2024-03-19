@@ -155,11 +155,6 @@
         { estado: "Zacatecas", clave: "ZS" }
     ];
 
-    function generarCaracterMayusculaAleatorio() {
-        let codigoCaracter = Math.floor(Math.random() * 26) + 65; 
-        return String.fromCharCode(codigoCaracter);
-    }
-
     function obtenerConsonantes(cadena){
         let arreglo = [];
         cadena = cadena.substring(1,cadena.length)
@@ -177,6 +172,16 @@
         return arreglo;
         
     }
+
+    function esCadenaDeLetras(variable) {
+  // Verificar si la variable es una cadena
+    if (typeof variable !== "string") {
+        return false;
+    }
+
+    // Utilizar una expresión regular para verificar si la cadena contiene solo letras
+    return /^[a-zA-Z]+$/.test(variable);
+}
 
     async function generarCURP() {
         let nombres = (document.getElementById("nombre").value.toUpperCase()).normalize("NFD").replace(/[\u0300-\u036f]/g,"").split(" ").filter(palabra => palabra.length !== 2);
@@ -213,9 +218,9 @@
             }
         }
 
-        if(!(nombre && apellido1 && apellido2 && fechaNacimiento && estadoSeleccionado && genero))
+        if(!(nombre && apellido1 && apellido2 && fechaNacimiento && estadoSeleccionado && genero && esCadenaDeLetras(nombre) && esCadenaDeLetras(apellido1) && esCadenaDeLetras(apellido2)))
         {
-            alert("Por favor rellene todos los campos");
+            alert("Por favor rellene todos los campos con datos correctos");
             return;
         }
 
@@ -241,7 +246,7 @@
             homoclave = 'A4';
         }
         else{
-            homoclave = generarCaracterMayusculaAleatorio() + generarCaracterMayusculaAleatorio();
+            homoclave = '';
         }
 
         let vocalesNombre = obtenerConsonantes(nombre);
